@@ -135,6 +135,7 @@ public class L8Handler {
 			Integer duration = Integer.valueOf(strDuration);
 			String image = (String)jsonFrame.get("image");
 			L8.Frame frame = new L8.Frame(Color.matrixFromString(image), duration);
+			frame.setBackLed(Color.backLedFromString(image));
 			frames.add(frame);
 		}
 		L8.Animation animation = new L8.Animation(frames);
