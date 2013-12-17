@@ -60,9 +60,9 @@ public class AndroidL8Manager extends BaseL8Manager {
 		                	bluetoothL8 = new BluetoothL8(bluetoothClient);
 		                	onInitialized(true);
 	                    break;
-	                case BluetoothClient.STATE_FAILED:
-	                	preferences.setLastConnectedDevice(null);
-	                	onInitialized(false);
+	                	case BluetoothClient.STATE_FAILED:
+	                		//preferences.setLastConnectedDevice(null);
+	                		onInitialized(false);
 	                    break;
 	                }
 	            break;
@@ -199,13 +199,8 @@ public class AndroidL8Manager extends BaseL8Manager {
         return false;
     }
     
-    // TODO:
-    /*
-    @Override
     public void onDestroy() {
-        super.onDestroy();
-        if (mBTClient != null) mBTClient.stop();
+        if (bluetoothClient != null) bluetoothClient.stop();
     }
-    */
     
 }
