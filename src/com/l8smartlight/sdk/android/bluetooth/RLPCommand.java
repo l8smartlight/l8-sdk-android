@@ -11,6 +11,7 @@ public class RLPCommand
 	public static final byte CMD_LED_SET 			= 0x43;
 	public static final byte CMD_MATRIX_SET		  	= 0x44;
 	public static final byte CMD_MATRIX_OFF		  	= 0x45;
+	public static final byte CMD_BACKLED_SET	  	= 0x4b;
 	
 	public static byte[] BuildLedSet(byte x, byte y, Color color)
 	{
@@ -57,7 +58,7 @@ public class RLPCommand
 		return cmd;
 	}
 	
-	public static  byte[] BuildMatrixSet(Color[][] matrix, int rows, int columns)
+	public static byte[] BuildMatrixSet(Color[][] matrix, int rows, int columns)
 	{
 		CRC8Table m_crc = new CRC8Table(0x07);
 		byte cmd[] = new byte[4 + rows*columns*2  + 1];
@@ -79,7 +80,7 @@ public class RLPCommand
 		return cmd;
 	}
 	
-	public static  byte[] BuildMatrixSet(Color[][] matrix, int rows, int columns, BluetoothL8.L8Mode mode)
+	public static byte[] BuildMatrixSet(Color[][] matrix, int rows, int columns, BluetoothL8.L8Mode mode)
 	{
 		CRC8Table m_crc = new CRC8Table(0x07);
 		byte cmd[];
@@ -131,4 +132,29 @@ public class RLPCommand
 		cmd[4] = (byte)m_crc.calc(cmd,3,4);
 		return cmd;
 	}
+	
+	public static byte[] BuildBackledSet(Color color, BluetoothL8.L8Mode mode)
+	{
+		CRC8Table m_crc = new CRC8Table(0x07);
+		byte cmd[] = new byte[8];
+		cmd[0] = (byte)HEADER_MSB;
+		cmd[1] = (byte)HEADER_LSB;
+		cmd[2] = 4;
+		cmd[3] = CMD_BACKLED_SET;
+		if(mode == BluetoothL8.L8Mode.L8_MODE_4BIT)
+		{
+			cmd[4] = (byte)((color.getBlue()>>4)&0x0f);
+			cmd[5] = (byte)((color.getGreen()>>4)&0x0f);
+			cmd[6] = (byte)((color.getRed()>>4)&0x0f);
+		}
+		else if(mode == BluetoothL8.L8Mode.L8_MODE_8BIT)
+		{
+			cmd[4] = (byte)((color.getBlue())&0x0f);
+			cmd[5] = (byte)((color.getGreen())&0x0f);
+			cmd[6] = (byte)((color.getRed())&0x0f);
+		}
+		cmd[7] = (byte)m_crc.calc(cmd,3,7);
+		return cmd;
+	}
+	
 }

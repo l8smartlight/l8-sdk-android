@@ -106,7 +106,7 @@ public class BluetoothL8 implements L8 {
 	@Override
 	public void setSuperLED(Color color) throws L8Exception {
 		stopCurrentAnimation(); // TODO: Esto yo creo que está mal porque el superled es parte de la animación.
-		System.out.println("bluetooth::setSuperLED");
+		send(RLPCommand.BuildBackledSet(color, mode));
 	}
 	
 	@Override
