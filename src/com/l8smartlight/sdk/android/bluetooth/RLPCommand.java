@@ -8,12 +8,22 @@ public class RLPCommand
 	public static final int HEADER_MSB  = 0xAA;
 	public static final int HEADER_LSB  = 0x55;
 	
-	public static final byte CMD_LED_SET 			= 0x43;
-	public static final byte CMD_MATRIX_SET		  	= 0x44;
-	public static final byte CMD_MATRIX_OFF		  	= 0x45;
-	public static final byte CMD_READ_BATTERY	  	= 0x46;
-	public static final byte READ_BATTERY_RESULT	= 0x47;
-	public static final byte CMD_BACKLED_SET	  	= 0x4b;
+	public static final byte CMD_LED_SET 				= 0x43;
+	public static final byte CMD_MATRIX_SET		  		= 0x44;
+	public static final byte CMD_MATRIX_OFF		  		= 0x45;
+	public static final byte CMD_READ_BATTERY	  		= 0x46;
+	public static final byte READ_BATTERY_RESULT		= 0x47;
+	public static final byte CMD_READ_TEMPERATURE	  	= 0x48;
+	public static final byte READ_TEMPERATURE_RESULT	= 0x49;
+	public static final byte CMD_BACKLED_SET	  		= 0x4b;
+	public static final byte CMD_READ_ACCELERATION	  	= 0x4c;
+	public static final byte READ_ACCELERATION_RESULT	= 0x4d;
+	public static final byte CMD_READ_AMBIENTLIGHT	  	= 0x50;
+	public static final byte READ_AMBIENTLIGHT_RESULT	= 0x51;
+	public static final byte CMD_READ_PROXIMITY	  		= 0x52;
+	public static final byte READ_PROXIMITY_RESULT		= 0x53;
+	public static final byte CMD_READ_NOISE		  		= 0x64;
+	public static final byte READ_NOISE_RESULT			= 0x65;
 	
 	public static byte[] BuildLedSet(byte x, byte y, Color color)
 	{
@@ -171,5 +181,62 @@ public class RLPCommand
 		return cmd;
 	}
 	
+	public static byte[] BuildReadTemperature()
+	{
+		CRC8Table m_crc = new CRC8Table(0x07);
+		byte cmd[] = new byte[5];
+		cmd[0] = (byte)HEADER_MSB;
+		cmd[1] = (byte)HEADER_LSB;
+		cmd[2] = 1;
+		cmd[3] = CMD_READ_TEMPERATURE;
+		cmd[4] = (byte)m_crc.calc(cmd,3,4);
+		return cmd;
+	}
+	
+	public static byte[] BuildReadAcceleration()
+	{
+		CRC8Table m_crc = new CRC8Table(0x07);
+		byte cmd[] = new byte[5];
+		cmd[0] = (byte)HEADER_MSB;
+		cmd[1] = (byte)HEADER_LSB;
+		cmd[2] = 1;
+		cmd[3] = CMD_READ_ACCELERATION;
+		cmd[4] = (byte)m_crc.calc(cmd,3,4);
+		return cmd;
+	}
+	
+	public static byte[] BuildReadAmbientLight()
+	{
+		CRC8Table m_crc = new CRC8Table(0x07);
+		byte cmd[] = new byte[5];
+		cmd[0] = (byte)HEADER_MSB;
+		cmd[1] = (byte)HEADER_LSB;
+		cmd[2] = 1;
+		cmd[3] = CMD_READ_AMBIENTLIGHT;
+		cmd[4] = (byte)m_crc.calc(cmd,3,4);
+		return cmd;
+	}
+	public static byte[] BuildReadProximity()
+	{
+		CRC8Table m_crc = new CRC8Table(0x07);
+		byte cmd[] = new byte[5];
+		cmd[0] = (byte)HEADER_MSB;
+		cmd[1] = (byte)HEADER_LSB;
+		cmd[2] = 1;
+		cmd[3] = CMD_READ_PROXIMITY;
+		cmd[4] = (byte)m_crc.calc(cmd,3,4);
+		return cmd;
+	}
+	public static byte[] BuildReadNoise()
+	{
+		CRC8Table m_crc = new CRC8Table(0x07);
+		byte cmd[] = new byte[5];
+		cmd[0] = (byte)HEADER_MSB;
+		cmd[1] = (byte)HEADER_LSB;
+		cmd[2] = 1;
+		cmd[3] = CMD_READ_NOISE;
+		cmd[4] = (byte)m_crc.calc(cmd,3,4);
+		return cmd;
+	}
 	
 }
