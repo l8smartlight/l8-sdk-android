@@ -11,10 +11,11 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 
+import com.l8smartlight.sdk.android.bluetooth.AndroidBluetoothL8;
 import com.l8smartlight.sdk.android.bluetooth.BluetoothClient;
-import com.l8smartlight.sdk.android.bluetooth.BluetoothL8;
 import com.l8smartlight.sdk.android.bluetooth.DeviceListActivity;
 import com.l8smartlight.sdk.android.bluetooth.Preferences;
+import com.l8smartlight.sdk.android.rest.AndroidRESTfulL8;
 import com.l8smartlight.sdk.core.BaseL8Manager;
 import com.l8smartlight.sdk.core.L8;
 import com.l8smartlight.sdk.core.L8Exception;
@@ -57,7 +58,7 @@ public class AndroidL8Manager extends BaseL8Manager {
 	                    break;
 	                	case BluetoothClient.STATE_CONNECTED:
 		                	preferences.setLastConnectedDevice(bluetoothClient.getConnectedDevice().getAddress());
-		                	bluetoothL8 = new BluetoothL8(bluetoothClient);
+		                	bluetoothL8 = new AndroidBluetoothL8(bluetoothClient);
 		                	onInitialized(true);
 	                    break;
 	                	case BluetoothClient.STATE_FAILED:
@@ -65,6 +66,11 @@ public class AndroidL8Manager extends BaseL8Manager {
 	                		onInitialized(false);
 	                    break;
 	                }
+	            break;
+	            case MESSAGE_READ:
+	            	if (bluetoothL8 != null) {
+	            		((AndroidBluetoothL8)bluetoothL8).received(msg.arg1, (byte[])msg.obj);
+	            	}
 	            break;
 	            case MESSAGE_DEVICE_NAME:
 
@@ -117,6 +123,12 @@ public class AndroidL8Manager extends BaseL8Manager {
 	}
 	
 	@Override
+	public L8 reconnectDevice(String deviceId) throws L8Exception {
+		AndroidRESTfulL8 l8 = new AndroidRESTfulL8();
+		return l8.reconnectSimulator(deviceId);
+	}
+	
+	@Override
 	public List<L8> discoverL8s() throws L8Exception {
 		List<L8> l8s = new ArrayList<L8>();
         if (!Constants.NO_L8_MODE) {
@@ -128,16 +140,16 @@ public class AndroidL8Manager extends BaseL8Manager {
 			String lastEmulatorId = preferences.getLastConnectedEmulator();
 			L8 lastEmulator = null;
 			if (lastEmulatorId != null) {
-				lastEmulator = super.reconnectDevice(lastEmulatorId);
+				lastEmulator = reconnectDevice(lastEmulatorId);
 			} 
 			if (lastEmulator != null) {
 				l8s.add(lastEmulator);
 			} else {
-				l8s = super.discoverL8s();
-				if (l8s.size() > 0) {
-					lastEmulatorId = l8s.get(0).getId();
-					preferences.setLastConnectedEmulator(lastEmulatorId);
-				}
+				AndroidRESTfulL8 l8 = new AndroidRESTfulL8();
+				l8.createSimulator();
+				lastEmulatorId = l8.getID();
+				preferences.setLastConnectedEmulator(lastEmulatorId);
+				l8s.add(l8);
 			}
 		}
 		return l8s;

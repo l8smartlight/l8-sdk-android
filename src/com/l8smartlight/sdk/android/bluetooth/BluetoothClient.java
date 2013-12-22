@@ -3,11 +3,7 @@ package com.l8smartlight.sdk.android.bluetooth;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.UUID;
-
-import com.l8smartlight.sdk.android.Util;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -52,18 +48,6 @@ public class BluetoothClient {
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
     public static final int STATE_FAILED = 4;  		// connection to remote device failed
-    
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-    public static String bytesToHex(int count, byte[] bytes) {
-        char[] hexChars = new char[count * 2];
-        int v;
-        for ( int j = 0; j < count; j++ ) {
-            v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }        
     
     /**
      * Constructor. Prepares a new PhonicBot session.
@@ -334,30 +318,14 @@ public class BluetoothClient {
 
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
-            byte[] buffer = new byte[1024];
-            int bytes;
-
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
+                	byte[] buffer = new byte[512];
                     // Read from the InputStream
-                    bytes = mmInStream.read(buffer);
+                    int bytes = mmInStream.read(buffer);
                     
-                    Util.error("BYTES READ: " + bytes + ": " + bytesToHex(bytes, buffer));
-                    if (bytes > 1) {
-                    	byte code = buffer[0];
-                    	if (code == 0x47) { 
-
-                    		byte[] v = new byte[2];
-	                    	v[0] = buffer[1];
-	                    	v[1] = buffer[2];
-                    		ByteBuffer bb = ByteBuffer.wrap(v);
-                    		bb.order(ByteOrder.LITTLE_ENDIAN);
-                    		int n = bb.getShort() & 0xffff; // para interpretar como unsigned short.
-	                    	Util.error("VALUE: " + n);
-	                    	
-                    	}
-                    }
+                    // Util.error("BYTES READ: " + bytes + ": " + Util.bytesToHex(bytes, buffer));
                     
                     // Send the obtained bytes to the UI Activity
                     mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();

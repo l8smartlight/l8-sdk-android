@@ -1,14 +1,17 @@
 package com.l8smartlight.sdk.android.bluetooth;
 
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.List;
 
+import com.l8smartlight.sdk.android.Util;
+import com.l8smartlight.sdk.base.NonBlockingL8;
 import com.l8smartlight.sdk.core.Color;
 import com.l8smartlight.sdk.core.L8;
 import com.l8smartlight.sdk.core.L8Exception;
 import com.l8smartlight.sdk.core.Sensor;
 
-public class BluetoothL8 implements L8 {
+public class AndroidBluetoothL8 extends NonBlockingL8 implements L8 {
 	
 	public static final int NUM_ROWS	= 8;
 	public static final int NUM_COLUMNS	= 8;
@@ -22,12 +25,12 @@ public class BluetoothL8 implements L8 {
 	protected BluetoothClient bluetoothClient;
 	protected L8Mode mode;
 	
-	public BluetoothL8(BluetoothClient bluetoothClient) 
+	public AndroidBluetoothL8(BluetoothClient bluetoothClient) 
 	{
 		this.bluetoothClient = bluetoothClient;
 		this.mode = L8Mode.L8_MODE_4BIT;
 	}	
-
+	
 	public boolean send(byte[] buffer) 
 	{
 		try {
@@ -44,6 +47,28 @@ public class BluetoothL8 implements L8 {
 	    	}
 		} catch(Exception ignored) {}
 		return false;
+	}
+	
+	protected L8.OnFloatResultListener readBatteryListener;
+	
+	public void received(int bytes, byte[] buffer) 
+	{
+		// TODO: Comentar:
+		Util.error("BYTES READ: " + bytes + ": " + Util.bytesToHex(bytes, buffer));
+		
+        if (bytes > 1) {
+        	byte code = buffer[0];
+        	if (code == RLPCommand.READ_BATTERY_RESULT && readBatteryListener != null) {
+        		byte[] v = new byte[2];
+            	v[0] = buffer[1];
+            	v[1] = buffer[2];
+        		ByteBuffer bb = ByteBuffer.wrap(v);
+        		bb.order(ByteOrder.BIG_ENDIAN);
+        		int result = bb.getShort() & 0xffff; // para interpretar como unsigned short.
+            	float batteryVoltage = (float)result / 1000;
+            	readBatteryListener.onResult(batteryVoltage);
+        	}
+        }
 	}
 
 	@Override
@@ -72,13 +97,6 @@ public class BluetoothL8 implements L8 {
 	}
 	
 	@Override
-	public Color[][] readMatrix() throws L8Exception 
-	{
-		System.out.println("bluetooth::readMatrix");
-		return null;
-	}
-	
-	@Override
 	public void setLED(int x, int y, Color color) throws L8Exception 
 	{
 		stopCurrentAnimation();
@@ -93,15 +111,8 @@ public class BluetoothL8 implements L8 {
 	}
 
 	@Override
-	public Color readLED(int x, int y) throws L8Exception 
-	{
-		System.out.println("bluetooth::readLED");
-		return null;
-	}
-	
-	@Override
 	public void setSuperLED(Color color) throws L8Exception {
-		stopCurrentAnimation(); // TODO: Esto yo creo que está mal porque el superled es parte de la animación.
+		stopCurrentAnimation();
 		send(RLPCommand.BuildBackledSet(color, mode));
 	}
 	
@@ -110,12 +121,6 @@ public class BluetoothL8 implements L8 {
 		stopCurrentAnimation();
 		System.out.println("bluetooth::clearSuperLED");
 	}	
-	
-	@Override
-	public Color readSuperLED() throws L8Exception {
-		System.out.println("bluetooth::readSuperLED");
-		return null;
-	}
 	
 	@Override
 	public void enableSensor(Sensor sensor) throws L8Exception 
@@ -130,73 +135,9 @@ public class BluetoothL8 implements L8 {
 	}
 	
 	@Override
-	public Sensor.Status readSensor(Sensor sensor) throws L8Exception
-	{
-		System.out.println("bluetooth::readSensor");
-		return new Sensor.TemperatureStatus(false, 0.0f, 0.0f);
-	}
-	
-	@Override
-	public List<Sensor.Status> readSensors() throws L8Exception {
-		return new ArrayList<Sensor.Status>();
-	}
-
-	@Override
-	public boolean isSensorEnabled(Sensor sensor) throws L8Exception
-	{
-		System.out.println("bluetooth::isSensorEnabled");
-		return true;
-	}
-	
-	@Override
-	public boolean isBluetoothEnabled() throws L8Exception
-	{
-		System.out.println("bluetooth::isBluetoothEnabled");
-		return false;
-	}
-	
-	@Override
-	public int getBatteryStatus() throws L8Exception
-	{
-		if (send(RLPCommand.BuildReadBattery())) {
-			//	byte[512] result = receive(512);
-		}
-		return 0;
-	}
-	
-	@Override
-	public int getButton() throws L8Exception
-	{
-		System.out.println("bluetooth::getButton");
-		return 0;		
-	}
-	
-	@Override
-	public int getMemorySize() throws L8Exception
-	{
-		System.out.println("bluetooth::getMemorySize");
-		return 0;		
-	}
-
-	@Override
-	public int getFreeMemory() throws L8Exception
-	{
-		System.out.println("bluetooth::getFreeMemory");
-		return 0;		
-	}
-	
-	@Override
-	public String getId() throws L8Exception
-	{
-		System.out.println("bluetooth::getId");
-		return null;
-	}
-	
-	@Override
-	public L8.Version getVersion() throws L8Exception
-	{
-		System.out.println("bluetooth::getVersion");
-		return null;
+	public void getBatteryStatus(L8.OnFloatResultListener listener) throws L8Exception {
+		readBatteryListener = listener;
+		send(RLPCommand.BuildReadBattery());
 	}
 	
 	protected L8.Animation currentAnimation;
@@ -258,6 +199,73 @@ public class BluetoothL8 implements L8 {
 		} else {
 			return "";
 		}
+	}
+
+	@Override
+	public void getBluetoothEnabled(OnBooleanResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void getButton(OnIntegerResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void getConnectionURL(OnStringResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getFreeMemory(OnIntegerResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getID(OnStringResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getLED(int x, int y, OnColorResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getMatrix(OnColorMatrixResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getMemorySize(OnIntegerResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getSensor(Sensor sensor, OnSensorStatusResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getSensorEnabled(Sensor sensor, OnBooleanResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getSensors(OnSensorStatusListResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getSuperLED(OnColorResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void getVersion(OnVersionResultListener listener) throws L8Exception {
+		// TODO Auto-generated method stub
 	}
 	
 }
