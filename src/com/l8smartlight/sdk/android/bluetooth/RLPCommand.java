@@ -11,6 +11,7 @@ public class RLPCommand
 	public static final byte CMD_LED_SET 			= 0x43;
 	public static final byte CMD_MATRIX_SET		  	= 0x44;
 	public static final byte CMD_MATRIX_OFF		  	= 0x45;
+	public static final byte CMD_READ_BATTERY	  	= 0x46;
 	public static final byte CMD_BACKLED_SET	  	= 0x4b;
 	
 	public static byte[] BuildLedSet(byte x, byte y, Color color)
@@ -121,7 +122,7 @@ public class RLPCommand
 		return cmd;
 	}
 	
-	public static  byte[] BuildMatrixClear()
+	public static byte[] BuildMatrixClear()
 	{
 		CRC8Table m_crc = new CRC8Table(0x07);
 		byte cmd[] = new byte[5];
@@ -156,5 +157,18 @@ public class RLPCommand
 		cmd[7] = (byte)m_crc.calc(cmd,3,7);
 		return cmd;
 	}
+	
+	public static byte[] BuildReadBattery()
+	{
+		CRC8Table m_crc = new CRC8Table(0x07);
+		byte cmd[] = new byte[5];
+		cmd[0] = (byte)HEADER_MSB;
+		cmd[1] = (byte)HEADER_LSB;
+		cmd[2] = 1;
+		cmd[3] = CMD_READ_BATTERY;
+		cmd[4] = (byte)m_crc.calc(cmd,3,4);
+		return cmd;
+	}
+	
 	
 }

@@ -46,10 +46,6 @@ public class BluetoothL8 implements L8 {
 		return false;
 	}
 
-	public byte[] receive(int max) {
-		return null;
-	}
-	
 	@Override
 	public ConnectionType getConnectionType() 
 	{
@@ -162,7 +158,9 @@ public class BluetoothL8 implements L8 {
 	@Override
 	public int getBatteryStatus() throws L8Exception
 	{
-		System.out.println("bluetooth::getBatteryStatus");
+		if (send(RLPCommand.BuildReadBattery())) {
+			//	byte[512] result = receive(512);
+		}
 		return 0;
 	}
 	
