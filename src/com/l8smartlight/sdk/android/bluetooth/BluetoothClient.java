@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
+import com.l8smartlight.sdk.android.Util;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -325,7 +327,7 @@ public class BluetoothClient {
                     // Read from the InputStream
                     int bytes = mmInStream.read(buffer);
                     
-                    // Util.error("BYTES READ: " + bytes + ": " + Util.bytesToHex(bytes, buffer));
+                     Util.error("UNIVERSAL BYTES READ >>>>>: " + bytes + ": " + Util.bytesToHex(bytes, buffer));
                     
                     // Send the obtained bytes to the UI Activity
                     mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();

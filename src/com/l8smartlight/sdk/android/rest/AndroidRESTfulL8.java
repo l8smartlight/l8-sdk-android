@@ -511,4 +511,62 @@ public class AndroidRESTfulL8 extends NonBlockingL8 implements L8 {
 		}.execute();
 	}
 
+	@Override
+	public void stopCurrentL8app() throws L8Exception {
+		
+	}
+
+	@Override
+	public void runL8AppDice(Color color) throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setL8Brightness(int Brightlevel) throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onNotification(String bundle, int eventNotificationID,
+			int categoryNotificationID) throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setText(String text, int loop, Color color, int speed)
+			throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void runL8AppLuminosityAndProximity(int sensor, Color colorMatrix, Color colorBackLed, byte threshold)
+			throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void runL8AppLights(int lightColorMode, int speed, int backLedInverted) throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void runL8AppPartyMode() throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void shutDown() throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
 }

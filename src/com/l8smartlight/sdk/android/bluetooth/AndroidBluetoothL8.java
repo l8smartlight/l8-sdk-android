@@ -5,6 +5,8 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.os.AsyncTask;
+
 import com.l8smartlight.sdk.android.Util;
 import com.l8smartlight.sdk.base.NonBlockingL8;
 import com.l8smartlight.sdk.core.Color;
@@ -61,8 +63,8 @@ public class AndroidBluetoothL8 extends NonBlockingL8 implements L8 {
 	
 	protected int readTwoBytesInt(byte[] buffer) {
 		byte[] v = new byte[2];
-    	v[0] = buffer[1];
-    	v[1] = buffer[2];
+    	v[0] = buffer[4];
+    	v[1] = buffer[5];
 		ByteBuffer bb = ByteBuffer.wrap(v);
 		bb.order(ByteOrder.BIG_ENDIAN);
 		return bb.getShort() & 0xffff; // para interpretar como unsigned short.
@@ -83,11 +85,12 @@ public class AndroidBluetoothL8 extends NonBlockingL8 implements L8 {
 		Util.error("BYTES READ: " + bytes + ": " + Util.bytesToHex(bytes, buffer));
 		
         if (bytes > 1) {
-        	byte code = buffer[0];
+        	byte code = buffer[3];
         	if (code == RLPCommand.READ_BATTERY_RESULT && readBatteryListener != null) {
-        		int result = readTwoBytesInt(buffer);
-            	float batteryVoltage = (float)result / 1000;
-            	readBatteryListener.onResult(batteryVoltage);
+        	//	int result = readTwoBytesInt(buffer);
+            //	float batteryVoltage = (float)result / 1000;
+            	float batteryVoltage = readOneByteInt(buffer[6]);
+        		readBatteryListener.onResult(batteryVoltage);
         	}
         	if (code == RLPCommand.READ_TEMPERATURE_RESULT && readTemperatureListener != null) {
         		int result = readTwoBytesInt(buffer);
@@ -96,25 +99,28 @@ public class AndroidBluetoothL8 extends NonBlockingL8 implements L8 {
             	readTemperatureListener.onResult(new Sensor.TemperatureStatus(true, celsiusValue, fahrenheitValue));
         	}
         	if (code == RLPCommand.READ_ACCELERATION_RESULT && readAccelerationListener != null) {
-            	int accX = readOneByteInt(buffer[1]);
-            	int accY = readOneByteInt(buffer[2]);
-            	int accZ = readOneByteInt(buffer[3]);
-            	int lying = readOneByteInt(buffer[4]);
-            	int orientation = readOneByteInt(buffer[5]);
-            	int tap = readOneByteInt(buffer[6]);
-            	int shake = readOneByteInt(buffer[7]);
+            	int accX = readOneByteInt(buffer[4]);
+            	int accY = readOneByteInt(buffer[5]);
+            	int accZ = readOneByteInt(buffer[6]);
+            	int lying = readOneByteInt(buffer[7]);
+            	int orientation = readOneByteInt(buffer[8]);
+            	int tap = readOneByteInt(buffer[9]);
+            	int shake = readOneByteInt(buffer[10]);
             	readAccelerationListener.onResult(new Sensor.AccelerationStatus(true, accX, accY, accZ, shake, orientation, tap, lying));
         	}
         	if (code == RLPCommand.READ_AMBIENTLIGHT_RESULT && readAmbientLightListener != null) {
-        		int ambientlight = readTwoBytesInt(buffer);
+        	//	int ambientlight = readTwoBytesInt(buffer);
+        		int ambientlight = readOneByteInt(buffer[6]);
         		readAmbientLightListener.onResult(new Sensor.AmbientLightStatus(true, ambientlight));
         	}
         	if (code == RLPCommand.READ_PROXIMITY_RESULT && readProximityListener != null) {
-        		int proximity = readTwoBytesInt(buffer);
+        	//	int proximity = readTwoBytesInt(buffer);
+        		int proximity = readOneByteInt(buffer[6]);
         		readProximityListener.onResult(new Sensor.ProximityStatus(true, proximity));
         	}
         	if (code == RLPCommand.READ_NOISE_RESULT && readNoiseListener != null) {
         		int noise = readTwoBytesInt(buffer);
+        	//	int noise = readOneByteInt(buffer[6]);
         		readNoiseListener.onResult(new Sensor.NoiseStatus(true, noise));
         	}
         }
@@ -189,6 +195,28 @@ public class AndroidBluetoothL8 extends NonBlockingL8 implements L8 {
 		send(RLPCommand.BuildReadBattery());
 	}
 	
+	///a–adiendo metodos para brillo y set notifications
+	
+	public void setNotificacion(String bundle, int idCategory, int idTypeNotification){
+		
+		
+		
+	
+	}
+	
+	public void setL8BrightHight() {
+		
+	}
+	
+	public void setL8BrightLow (){
+		
+	}
+	@Override
+	public void stopCurrentL8app () throws L8Exception {
+		
+		send(RLPCommand.BuildStopCurrentL8App());
+	}
+
 	protected L8.Animation currentAnimation;
     protected int currentAnimationIndex = 0;	
     protected boolean shouldStopAnimation = true;
@@ -373,5 +401,150 @@ public class AndroidBluetoothL8 extends NonBlockingL8 implements L8 {
 	public void getVersion(OnVersionResultListener listener) throws L8Exception {
 		throw new L8MethodNotSupportedException();
 	}
+
+	@Override
+	public void setL8Brightness(int Brightlevel) throws L8Exception {
+		
+		send(RLPCommand.BuildBrightLevel((byte)Brightlevel));
+		
+	}
+
+	@Override
+	public void onNotification(String bundle, int eventNotificationID,
+			int categoryNotificationID) throws L8Exception {
+		send(RLPCommand.BuildNotificationPosted( bundle, (byte)eventNotificationID,(byte)categoryNotificationID ));
+		
+	}
+
+	@Override
+	public void setText(final String text, final int loop, final Color color, final int speed)
+			throws L8Exception {
+		// TODO Auto-generated method stub
+		
+	//	stopCurrentL8app ();
+	//	send(RLPCommand.BuildTexttoL8( text, (byte)loop,color,(byte)speed,mode ));
+		AsyncTask<Void,Void,Void> task = new AsyncTask<Void,Void,Void>(){
+
+			@Override
+			protected Void doInBackground(Void... arg0) {
+				try{
+				stopCurrentL8app();
+				Thread.sleep(200);
+				send(RLPCommand.BuildTexttoL8( text, (byte)loop,color,(byte)speed,mode ));
+				}catch(Exception e){
+					
+				}
+				return null;
+			}
+			
+		};
+		task.execute();
+	}
+
+	@Override
+	public void runL8AppLuminosityAndProximity(final int sensor, final Color colorMatrix,
+			final Color colorBackLed, final byte threshold) throws L8Exception {
+		// TODO Auto-generated method stub
+		//stopCurrentL8app ();
+	//	send(RLPCommand.BuildRunL8AppLuminosityAndProximity((byte) sensor, colorMatrix, colorBackLed,threshold,mode ));
+		AsyncTask<Void,Void,Void> task = new AsyncTask<Void,Void,Void>(){
+
+			@Override
+			protected Void doInBackground(Void... arg0) {
+				try{
+				stopCurrentL8app();
+				Thread.sleep(200);
+				send(RLPCommand.BuildRunL8AppLuminosityAndProximity((byte) sensor, colorMatrix, colorBackLed,threshold,mode ));
+				}catch(Exception e){
+					
+				}
+				return null;
+			}
+			
+		};
+		task.execute();
+	}
+
+	@Override
+	public void runL8AppLights(final int lightColorMode, final int speed,
+			final int backLedInverted) throws L8Exception {
+		// TODO Auto-generated method stub
+	//	stopCurrentL8app ();
+	//	send(RLPCommand.BuildRunL8AppLight((byte) lightColorMode, (byte) speed, (byte) backLedInverted ));
+		AsyncTask<Void,Void,Void> task = new AsyncTask<Void,Void,Void>(){
+
+			@Override
+			protected Void doInBackground(Void... arg0) {
+				try{
+				stopCurrentL8app();
+				Thread.sleep(200);
+				send(RLPCommand.BuildRunL8AppLight((byte) lightColorMode, (byte) speed, (byte) backLedInverted ));
+				}catch(Exception e){
+					
+				}
+				return null;
+			}
+			
+		};
+		task.execute();
+	}
+	@Override
+	public void runL8AppDice (final Color color) throws L8Exception {
+	//	stopCurrentL8app ();
+		//System.out.println ( "antes de enviar command de run dice");
+	//	send(RLPCommand.BuildRunL8appDice( color, mode));
+		//System.out.println ( "comando enviado run dice");
+		AsyncTask<Void,Void,Void> task = new AsyncTask<Void,Void,Void>(){
+
+			@Override
+			protected Void doInBackground(Void... arg0) {
+				try{
+				stopCurrentL8app();
+				Thread.sleep(200);
+				send(RLPCommand.BuildRunL8appDice(color, mode));
+				}catch(Exception e){
+					
+				}
+				return null;
+			}
+			
+		};
+		task.execute();
+	}
+	
+	///////////////
+
+	@Override
+	public void runL8AppPartyMode() throws L8Exception {
+		// TODO Auto-generated method stub
+	//	stopCurrentL8app ();
+	//	send(RLPCommand.BuildRunL8appPartyMode());
+		AsyncTask<Void,Void,Void> task = new AsyncTask<Void,Void,Void>(){
+
+			@Override
+			protected Void doInBackground(Void... arg0) {
+				try{
+				stopCurrentL8app();
+				Thread.sleep(200);
+				send(RLPCommand.BuildRunL8appPartyMode());
+				}catch(Exception e){
+					
+				}
+				return null;
+			}
+			
+		};
+		task.execute();
+	}
+
+	@Override
+	public void shutDown() throws L8Exception {
+		// TODO Auto-generated method stub
+		send(RLPCommand.BuildShutDown());
+	}
+	
+	//AA 55 05 81 08 0F 0F 0F 0F 0F 0F 40 00
+
+
 	
 }

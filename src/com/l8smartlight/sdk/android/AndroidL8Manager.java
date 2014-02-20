@@ -10,6 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.l8smartlight.sdk.android.bluetooth.AndroidBluetoothL8;
 import com.l8smartlight.sdk.android.bluetooth.BluetoothClient;
@@ -44,6 +46,8 @@ public class AndroidL8Manager extends BaseL8Manager {
 	
 	protected BluetoothAdapter bluetoothAdapter;
 	protected BluetoothClient bluetoothClient;
+	private boolean destroyed = false; 
+	
 	protected Handler bluetoothHandler = new Handler(new Handler.Callback() {
 		@Override
 		public boolean handleMessage(Message msg) {
@@ -154,6 +158,39 @@ public class AndroidL8Manager extends BaseL8Manager {
 		}
 		return l8s;
 	}
+	
+	//
+	public List<L8> discoverL8sAndLoadEmulator() throws L8Exception {
+		List<L8> l8s = new ArrayList<L8>();
+        if (!Constants.NO_L8_MODE) {
+			if (bluetoothL8 != null) {
+				l8s.add(bluetoothL8);
+			}
+        }
+        try
+        {
+			String lastEmulatorId = preferences.getLastConnectedEmulator();
+			L8 lastEmulator = null;
+			if (lastEmulatorId != null) {
+				lastEmulator = reconnectDevice(lastEmulatorId);
+			} 
+			if (lastEmulator != null) {
+				l8s.add(lastEmulator);
+			} else {
+				AndroidRESTfulL8 l8 = new AndroidRESTfulL8();
+				l8.createSimulator();
+				lastEmulatorId = l8.getID();
+				preferences.setLastConnectedEmulator(lastEmulatorId);
+				l8s.add(l8);
+			}
+        }catch(Exception e){
+        	Log.e("L8Manager", "Error :"+e);
+        	if(l8s.size()==0){
+        		throw new L8Exception("No bt devices and http connection fail");
+        	}
+        }
+		return l8s;
+	}
 		
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -162,6 +199,7 @@ public class AndroidL8Manager extends BaseL8Manager {
 	            if (resultCode != Activity.RESULT_OK) {
 	            	onInitialized(false);
 	            } else {
+	            //	Toast.makeText(context, "DEBERIA CONECTAR", 0).show();
 	            	connectDevice(data, true);
 	            }
             break;
@@ -176,7 +214,7 @@ public class AndroidL8Manager extends BaseL8Manager {
         }
     }	
     
-    protected void lookForDevices() {
+    public void lookForDevices() {
     	if (!reconnectLastDevice()) {
     		startConnectDeviceSecure();
     	}
@@ -187,6 +225,14 @@ public class AndroidL8Manager extends BaseL8Manager {
         	Intent intent = new Intent(context, DeviceListActivity.class);
         	activity.startActivityForResult(intent, REQUEST_CONNECT_DEVICE_SECURE);
         }
+	}
+	
+	//cambiado por CMA
+	public void scan(Activity activity){
+		 if (!Constants.NO_L8_MODE) {
+	        	Intent intent = new Intent(context, DeviceListActivity.class);
+	        	activity.startActivityForResult(intent, REQUEST_CONNECT_DEVICE_SECURE);
+	        }
 	}
 	
     private void connectDevice(Intent data, boolean secure) {
@@ -212,7 +258,12 @@ public class AndroidL8Manager extends BaseL8Manager {
     }
     
     public void onDestroy() {
+    	destroyed = true;
         if (bluetoothClient != null) bluetoothClient.stop();
     }
+
+	public boolean isDestroyed() {
+		return destroyed;
+	}
     
 }
