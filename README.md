@@ -5,6 +5,14 @@ L8 smartlight Android SDK V1.0
 **Note:** 
 We are working on a new SDK version 2.0 and so several things of the existing version 1.0 will be changed in few weeks. If you use V1.0, your code will not be compatible with the next version, of course you are free to use it. Apologies for this inconvenience but our objective is to create much better software that is not possible with the existing design. We are in continuous evolution thanks to all!.
 
+**Note:**
+Thre is an easy way to create apps for your L8 without this SDK, you can use Exposed Api for more details:  [Exposed-Android-API](https://github.com/l8devteam/Exposed-Android-API)
+
+**NEWS**
+**There is a new SDK V2.0 available!** [l8 sdk android V2.0](https://github.com/l8smartlight/l8-sdk-android-V2.0)
+
+
+
 ## 1. Installation:
 
 1.Clone the projects. 
